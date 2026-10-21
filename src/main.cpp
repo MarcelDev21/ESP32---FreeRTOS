@@ -56,7 +56,7 @@ void tacheUltrason(void *parameter) {
     }
 }
 
-// Tâche 2 : capteur DHT11 // Task 2: DHT11 Sensor
+// Task 2: DHT11 Sensor // Tâche 2 : capteur DHT11 
 void tacheDHT(void *parameter) {
     dht.begin();
 
@@ -79,7 +79,7 @@ void tacheDHT(void *parameter) {
     }
 }
 
-// Tâche 3 : communication série et stockage local // Task 3: Serial Communication and Local Storage
+// Task 3: Serial Communication and Local Storage // Tâche 3 : communication série et stockage local 
 
 void tacheCommunication(void *parameter) {
     static Mesure historique[100];
@@ -87,9 +87,9 @@ void tacheCommunication(void *parameter) {
     size_t prochainePosition = 0;
     String commande = "";
 
-    Serial.println("Commandes disponibles :");
-    Serial.println("csv  -> exporter les mesures");
-    Serial.println("help -> afficher les commandes");
+    Serial.println("Available Commands :");
+    Serial.println("csv: Export measurements");
+    Serial.println("help: display commands");
 
     while (true) {
         Mesure m;
@@ -115,11 +115,16 @@ void tacheCommunication(void *parameter) {
             }
         }
 
-        // Lire les caractères reçus sur le port série // Read characters received on the serial port
+        // Read characters received on the serial port // Lire les caractères reçus sur le port série
         while (Serial.available() > 0) {
             char caractere = Serial.read();
 
+            if(caractere != '\n' && caractere != '\r'){
+                Serial.print(caractere);
+            }
+
             if (caractere == '\n' || caractere == '\r') {
+                Serial.println();
                 commande.trim();
 
                 if (commande.equalsIgnoreCase("help")) {
@@ -138,7 +143,7 @@ void tacheCommunication(void *parameter) {
                         if (r.type == ULTRASON) {
                             Serial.print("HC-SR04,");
                             Serial.print(r.distance, 2);
-                            Serial.println(",,,");
+                            Serial.println(",,");
                         } else {
                             Serial.print("DHT11,,");
                             Serial.print(r.temperature, 1);
@@ -152,8 +157,10 @@ void tacheCommunication(void *parameter) {
                 }
 
                 commande = "";
-            } else if (caractere != '\b' && caractere != 127 &&commande.length() < 20) {
-                commande += caractere;
+            } else{
+                if(commande.length() < 20){
+                    commande = commande + caractere;
+                }
             }
         }
     }
@@ -166,11 +173,11 @@ void setup() {
 
     Serial.println("=== DEMARRAGE FREERTOS ===");
 
-    // Créer une queue de 20 messages // Create a queue of 20 messages
+    // Create a queue of 20 messages // Créer une queue de 20 messages 
     fileMesures = xQueueCreate(20, sizeof(Mesure));
 
     if (fileMesures == nullptr) {
-        Serial.println("ERREUR : creation de la queue impossible");
+        Serial.println("ERROR: Unable to create the queue");
         while (true) {
             delay(1000);
         }
